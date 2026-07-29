@@ -563,5 +563,375 @@ window.render=function(){let pages={home,map:mapView,routes:routesView,navigate,
   if(S.view==='navigate')window.render();
 })();
 </script>
+<script>
+(()=>{
+  const languageKey='bluedrop-language-v1';
+  let currentLanguage=localStorage.getItem(languageKey)||'ko';
+  const placeTranslations={
+    '송정 죽도공원':'Songjeong Jukdo Park','청사포 다릿돌전망대':'Cheongsapo Daritdol Observatory','미포철길':'Mipo Railway Trail',
+    '광안리 해변':'Gwangalli Beach','민락수변공원':'Millak Waterfront Park','이기대 해안산책로':'Igidae Coastal Trail',
+    '흰여울문화마을':'Huinnyeoul Culture Village','송도 구름산책로':'Songdo Cloud Trail','감천문화마을':'Gamcheon Culture Village',
+    '다대포 해변':'Dadaepo Beach','온천천 산책길':'Oncheoncheon Walking Trail','전포 카페거리':'Jeonpo Cafe Street',
+    '북항 친수공원':'North Port Waterfront Park','오륙도 스카이워크':'Oryukdo Skywalk','해운대 달맞이길':'Haeundae Dalmaji Road',
+    '청사포 포구':'Cheongsapo Harbor','송정 해변':'Songjeong Beach','기장 죽성성당':'Gijang Jukseong Church',
+    '일광 해변':'Ilgwang Beach','대변항':'Daebyeon Port','오시리아 산책길':'Osiria Walking Trail',
+    '수영강 카페길':'Suyeong River Cafe Trail','망미단길':'Mangmidan-gil','남천동 벚꽃길':'Namcheon-dong Cherry Blossom Road',
+    '용호만 산책로':'Yonghoman Walking Trail','태종대 전망대':'Taejongdae Observatory','영도 봉래산':'Bongnaesan Mountain, Yeongdo',
+    '초량 이바구길':'Choryang Ibagu-gil','부평깡통시장':'Bupyeong Kkangtong Market','국제시장 골목':'Gukje Market Alley',
+    '용두산공원':'Yongdusan Park','범어사 숲길':'Beomeosa Forest Trail','금정산성마을':'Geumjeongsanseong Village',
+    '부산시민공원':'Busan Citizens Park','삼락생태공원':'Samnak Ecological Park','을숙도 철새공원':'Eulsukdo Migratory Bird Park',
+    '암남공원':'Amnam Park','송도 해상케이블카':'Songdo Marine Cable Car','절영해안산책로':'Jeoryeong Coastal Trail',
+    '다대포 꿈의낙조분수':'Dadaepo Sunset Fountain of Dreams','아미동 비석문화마을':'Ami-dong Tombstone Culture Village',
+    '수정산 가족체육공원':'Sujeongsan Family Sports Park','문현금융단지':'Munhyeon Financial District',
+    '광복로 문화거리':'Gwangbok-ro Culture Street','부산역 북항길':'Busan Station North Port Trail','동백섬 산책로':'Dongbaekseom Walking Trail',
+    '해리단길':'Haeridan-gil','반송시장':'Bansong Market','명지 생태공원':'Myeongji Ecological Park',
+    '가덕도 대항마을':'Daehang Village, Gadeokdo','천성항':'Cheonseong Port','연산교차로 카페':'Yeonsan Intersection Cafe Area',
+    '동래읍성':'Dongnaeeupseong Fortress','금강공원':'Geumgang Park','장전동 골목':'Jangjeon-dong Alley',
+    '부산대 앞 거리':'Pusan National University Street','사상 삼락노을길':'Sasang Samnak Sunset Trail',
+    '괴정천 산책로':'Goejeongcheon Walking Trail','신평역 벽화길':'Sinpyeong Station Mural Street',
+    '구포시장':'Gupo Market','화명생태공원':'Hwamyeong Ecological Park','덕천 로컬거리':'Deokcheon Local Street',
+    '몰운대 해안길':'Molundae Coastal Trail','기장 연화리':'Yeonhwa-ri, Gijang',
+    '부산역':'Busan Station','서면역':'Seomyeon Station','해운대역':'Haeundae Station','광안역':'Gwangan Station',
+    '금련산역':'Geumnyeonsan Station','남포역':'Nampo Station','남천동 골목':'Namcheon-dong Alley'
+  };
+  const districtTranslations={
+    '해운대구':'Haeundae-gu','수영구':'Suyeong-gu','남구':'Nam-gu','영도구':'Yeongdo-gu','서구':'Seo-gu',
+    '사하구':'Saha-gu','동래구':'Dongnae-gu','부산진구':'Busanjin-gu','동구':'Dong-gu','기장군':'Gijang-gun',
+    '금정구':'Geumjeong-gu','중구':'Jung-gu','사상구':'Sasang-gu','북구':'Buk-gu','강서구':'Gangseo-gu','연제구':'Yeonje-gu'
+  };
+  const uiTranslations={
+    '도착지는 선택한 관광지로 자동 설정됩니다. 출발지만 입력해 주세요.':'The selected attraction is set as the destination automatically. Enter only your starting point.',
+    '지하철 시간과 환승 정보는 실시간 시간표가 필요합니다. 아래 버튼을 누르면 입력한 출발지와 선택한 목적지로 대중교통 길찾기가 열립니다.':'Subway times and transfers require live schedules. Use the button below to open transit directions for your entered origin and selected destination.',
+    '도보와 차량을 서로 다른 도로망으로 계산하며, 임의의 직선 경로를 표시하지 않습니다.':'Walking and driving use separate road networks. The app never substitutes a straight line.',
+    '잘못된 직선 경로를 보여주는 대신 실제 경로를 다시 요청할 수 있도록 처리했습니다.':'Instead of showing an incorrect straight line, you can request the real route again.',
+    '인터넷 연결을 확인한 뒤 다시 시도해 주세요. 직선 경로로 대체하지 않습니다.':'Check your internet connection and try again. A straight line will not be used as a substitute.',
+    '직선으로 대신 표시하지 않습니다. 인터넷 연결을 확인하고 다시 시도해 주세요.':'A straight line will not be shown as a substitute. Check your connection and try again.',
+    '선택한 분위기와 이동 시간을 바꾸면 추천 결과도 즉시 갱신됩니다.':'Recommendations update instantly when you change the mood or travel time.',
+    '관광지와 산책 루트 주변의 짧은 플로깅 미션이에요.':'Short plogging missions near attractions and walking routes.',
+    '여유로운 해변 구간을 따라 다음 플로깅을 이어가 보세요.':'Continue your next plogging mission along a quieter coastal section.',
+    '내 제보가 다른 여행자의 선택에 실시간으로 반영됩니다.':'My reports help other travelers make better choices in real time.',
+    '사람이 몰리지 않아 지금 걷기 좋아요.':'It is quiet enough for a comfortable walk right now.',
+    '최근 제보를 반영한 현재 상태예요.':'This status reflects the latest traveler reports.',
+    '빠른 길 대신, 지금의 부산을 더 편하게 걷는 선택이에요.':'Choose a calmer way to experience Busan instead of only the fastest route.',
+    '바다 쪽 데크를 따라가면 조용한 구간이 이어져요.':'Follow the seaside deck to continue through a quieter section.',
+    '현장 정보가 반영됐어요. 2시간 동안 다른 여행자에게 표시됩니다.':'Your on-site update is live and will be shown to travelers for two hours.',
+    '아직 활동이 없어요. 부산의 지금을 처음 알려주세요.':'No activity yet. Share your first update about Busan.',
+    '여행이 부산에 남긴 좋은 변화예요.':'See the positive change your trip has made in Busan.',
+    '더 여유로운 부산 여행에 기여했어요':'You helped make travel in Busan calmer and more enjoyable.',
+    '위치 권한 없이도 지도를 이용할 수 있어요.':'You can still use the map without location permission.',
+    '현재 위치를 사용할 수 없어 부산 중심으로 안내합니다.':'Your location is unavailable, so the map is centered on Busan.',
+    '현재 위치가 부산에서 멀어, 목적지 주변 지도만 표시합니다.':'Your current location is far from Busan, so only the destination area is shown.',
+    '주소창 왼쪽 설정에서 위치를 허용하고 새로고침해 주세요.':'Allow location in the site settings beside the address bar, then refresh.',
+    '위치 권한이 허용되면 실제 도로 경로를 계산합니다.':'The real road route will be calculated after location access is allowed.',
+    '도로 경로를 불러오지 못했습니다.':'The road route could not be loaded.',
+    '도로 경로를 불러오지 못했습니다. 인터넷 연결을 확인하고 다시 시도해 주세요.':'The road route could not be loaded. Check your connection and try again.',
+    '경로 서버에 연결하지 못했습니다. 위치는 계속 추적 중입니다.':'The routing service is unavailable. Location tracking is still active.',
+    '경로를 찾지 못했습니다. 출발 장소 이름을 더 자세히 입력해 주세요.':'No route was found. Enter a more specific starting location.',
+    '출발 위치를 찾지 못했습니다. 장소 이름을 더 자세히 입력해 주세요.':'The starting point could not be found. Enter a more specific place name.',
+    '출발 위치를 찾지 못했습니다. 예: 부산역, 해운대역처럼 입력해 주세요.':'The starting point could not be found. Try a place such as Busan Station or Haeundae Station.',
+    '부산역, 서면역처럼 장소 이름을 더 정확하게 입력해 주세요.':'Enter a more precise place name, such as Busan Station or Seomyeon Station.',
+    '매장에서 사용을 완료했나요? 사용 처리하면 쿠폰함에서 삭제됩니다.':'Did you finish using this coupon at the store? Confirming will remove it from your wallet.',
+    '보관 중인 쿠폰이 없습니다. 리워드에서 쿠폰을 교환하면 일련번호가 자동 발급됩니다.':'No coupons are stored. Redeem a reward to receive a coupon serial number automatically.',
+    '매장에서 아래 일련번호를 입력해 사용하세요.':'Enter the serial number below at the store to use this coupon.',
+    '쿠폰 일련번호를 복사했어요.':'Coupon serial number copied.',
+    '사용한 쿠폰을 쿠폰함에서 삭제했어요.':'The used coupon was removed from your wallet.',
+    '매장에서 사용을 마쳤다면 한 번 더 눌러주세요.':'If the coupon has been used at the store, press once more.',
+    '현재 교환 가능한 지역 혜택이에요.':'These local rewards are currently available to redeem.',
+    '플로깅으로 모은 Drop을 부산 지역 혜택으로 바꿔보세요.':'Redeem the Drops earned from plogging for local Busan rewards.',
+    '원본 데이터와 완전히 분리됨':'Completely separated from the original data',
+    '원본과 분리된 수정용':'Editable copy separated from the original',
+    '오늘, 어떤 부산을 찾고 있나요?':'What kind of Busan are you looking for today?',
+    '오늘, 어떤 부산을':'What kind of Busan are you',
+    '찾고 있나요?':'looking for today?',
+    '부산의 지금을 읽는 여행':'A trip that understands Busan right now',
+    '부산을 더 깨끗하게.':'Make Busan cleaner.',
+    '걷는 길에서,':'As you explore,',
+    '여행 중 실천':'Act while you travel',
+    '원하는 분위기':'Preferred mood',
+    '이동 가능한 시간':'Available travel time',
+    '지금 조건에 맞는 3곳':'Top 3 places for your preferences',
+    '지금 떠날 수 있는 미션':'Missions you can start now',
+    '나의 부산 흐름':'My Busan Journey',
+    '나의 기여':'My impact',
+    '최근 활동':'Recent activity',
+    '지금 이곳은 어떤가요?':'What is this place like right now?',
+    '3초면 충분해요. 이 정보는 2시간 동안 여행자에게 보입니다.':'It takes only three seconds. This update will be visible to travelers for two hours.',
+    '한 줄 추가 (선택)':'Add a short note (optional)',
+    '예: 해변 입구 쪽에 사람이 모여 있어요.':'Example: People are gathering near the beach entrance.',
+    '장소 간 경로 안내':'Directions between places',
+    '실제 길을 따르는 경로 안내':'Directions along real roads',
+    '실제 경로를 준비하고 있어요.':'Preparing the real route.',
+    '실제 경로를 찾았습니다.':'The real route is ready.',
+    '경로를 계산하면 실제 도로망 기준 결과가 표시됩니다.':'Calculate a route to see results based on the real road network.',
+    '대중교통은 실시간 시간표로 확인해 주세요.':'Check public transit using live schedules.',
+    '실제 운행 정보 없이 임의의 지하철 경로나 시간을 표시하지 않습니다.':'No subway route or time is estimated without live service data.',
+    '도착지는':'Destination:',
+    '으로 자동 설정됩니다.':'is set automatically.',
+    '출발 장소를 입력하면 실제 도로 경로를 표시합니다.':'Enter a starting point to display the real road route.',
+    '출발 위치를 입력하고 “경로 찾기”를 눌러 주세요.':'Enter a starting point and press “Find route.”',
+    '출발 위치를 입력하고':'Enter a starting point and',
+    '를 눌러 주세요.':'press the button.',
+    '출발 위치를 찾고 있어요.':'Finding the starting point.',
+    '출발 위치를 입력해 주세요.':'Enter a starting point.',
+    '출발 위치를 찾지 못했습니다.':'The starting point could not be found.',
+    '경로를 준비 중이에요…':'Preparing the route…',
+    '경로를 계산하고 있어요…':'Calculating the route…',
+    '실제 도로 경로를 계산하고 있어요…':'Calculating the real road route…',
+    '실제 도로를 따라 경로를 분석 중…':'Analyzing a route along real roads…',
+    '실제 도로망을 따라 계산된 경로입니다.':'This route follows the real road network.',
+    '도로망을 기준으로 한 보행 예상 경로입니다.':'Estimated walking route based on the road network.',
+    '실제 도로망 기준 차량 경로입니다.':'Driving route based on the real road network.',
+    '도로 접근 구간과 지하철 이동을 합산한 예상 시간입니다.':'Estimated time includes road access and subway travel.',
+    '도보 이동 + 지하철 환승을 포함한 예상 시간':'Estimated time including walking and subway transfers',
+    '현재 도로 경로 기준 예상 시간':'Estimated time based on the current road route',
+    '보행 속도를 반영한 예상 시간':'Estimated time based on walking speed',
+    '선택한 이동 수단에 맞는 경로를 계산합니다.':'Calculating a route for the selected travel mode.',
+    '인도와 보행 가능한 길을 따라 계산':'Calculated using sidewalks and walkable paths',
+    '차량 통행이 가능한 실제 도로를 따라 계산':'Calculated using real drivable roads',
+    '실시간 시간표가 있는 지도에서 확인':'Check on a map with live schedules',
+    '정확한 대중교통 길찾기':'Accurate transit directions',
+    '실시간 대중교통 길찾기 열기':'Open live transit directions',
+    '실시간 운행 정보':'Live service information',
+    '현재 위치를 따라 안내 중':'Following your current location',
+    '현재 위치를 찾는 중…':'Finding your current location…',
+    '위치 정보를 받지 못했습니다.':'Location information is unavailable.',
+    '이 브라우저에서는 위치 정보를 사용할 수 없습니다.':'Location is not available in this browser.',
+    '위치 권한을 확인 중…':'Checking location permission…',
+    '위치 권한을 허용하면 실제 GPS 안내가 시작됩니다.':'Allow location access to start real GPS guidance.',
+    '목적지 주변 지도만 표시합니다.':'Only the destination area is shown.',
+    '현장 체크인 완료':'On-site check-in complete',
+    '먼저 현장 체크인을 해주세요.':'Complete the on-site check-in first.',
+    '수거 사진 등록 완료':'Collection photo added',
+    '수거 사진을 등록해 주세요.':'Add a collection photo.',
+    '수거 사진 등록':'Add collection photo',
+    '인증 승인':'Verification approved',
+    '확인 필요':'More verification needed',
+    '환경 영수증':'Impact receipt',
+    '다음 미션 찾기':'Find the next mission',
+    '다음 추천':'Next recommendation',
+    '완료 미션':'Completed mission',
+    '수거 쓰레기':'Collected waste',
+    '이동 거리':'Distance traveled',
+    '활동 시간':'Activity time',
+    '구역 청정도':'Zone clean score',
+    '해금 혜택':'Unlocked reward',
+    '미션 수락하고 출발':'Accept mission and start',
+    '현장 도착 · 미션 시작':'Arrived · Start mission',
+    '미션 장소로 안내 중':'Navigating to the mission location',
+    '플로깅 장소로 안내':'Directions to plogging location',
+    '우회 루트 안내 중':'Alternative route guidance',
+    '우회 루트 안내':'Alternative route directions',
+    '우회 루트 찾기':'Find alternative route',
+    '루트 비교':'Compare routes',
+    '빠른 길':'Fastest route',
+    '가장 조용한 길':'Quietest route',
+    '발견이 많은 길':'Discovery-rich route',
+    '대중교통 중심 길':'Transit-focused route',
+    '이 길 선택':'Choose this route',
+    '루트 종료':'End route',
+    '다음 발견 포인트':'Next discovery point',
+    '다음 지점':'Next point',
+    '남은 시간':'Time remaining',
+    '현재 혼잡':'Current crowd level',
+    '평균 혼잡':'Average crowd level',
+    '조용한 구간':'Quiet sections',
+    '혼잡 구간':'Crowded sections',
+    '발견 포인트':'Discovery points',
+    '예상 대기':'Estimated wait',
+    '교통 혼잡':'Traffic',
+    '사진 촬영':'Photo conditions',
+    '최근 2시간 제보':'Reports in the last 2 hours',
+    '관광 혼잡':'Visitor crowd level',
+    '현재 깨끗해요':'It is clean now',
+    '지금 사람이 많아요':'It is crowded now',
+    '생각보다 조용해요':'Quieter than expected',
+    '쓰레기 거의 없어요':'Almost no litter',
+    '대기 시간이 길어요':'The wait is long',
+    '사진 찍기 좋아요':'Good for photos',
+    '사진 찍기 어려워요':'Difficult for photos',
+    '주차가 어려워요':'Parking is difficult',
+    '대중교통이 편해요':'Public transit is convenient',
+    '조용히 걷기 좋아요':'Good for a quiet walk',
+    '바람이 강해요':'Strong winds',
+    '화장실이 혼잡해요':'Restrooms are crowded',
+    '제보하기':'Submit report',
+    '해안 산책 중 플라스틱 5개 줍기':'Collect 5 plastic items during a coastal walk',
+    '캔 3개 수거해 분리배출하기':'Collect and recycle 3 cans',
+    '담배꽁초 10개 수거하기':'Collect 10 cigarette butts',
+    '관광 포인트까지 걸으며 쓰레기 5개 줍기':'Collect 5 pieces of litter while walking to an attraction',
+    '15분 동안 플로깅하기':'Plog for 15 minutes',
+    '다른 여행자가 신고한 쓰레기 해결하기':'Clean up litter reported by another traveler',
+    '플라스틱':'Plastic','캔':'Can','담배꽁초':'Cigarette butts','기타':'Other','청정도':'Clean score',
+    '수거 진행률':'Collection progress','목표까지':'To goal','예상 Drop':'Estimated Drops',
+    '구역 보너스':'Zone bonus','참여자':'Participants','미션 시작':'Start mission',
+    '편의점 음료 1,000원 할인':'KRW 1,000 off a convenience-store drink',
+    '해변 카페 음료 10% 할인':'10% off a drink at a beach cafe',
+    '해변 카페 10% 할인':'10% off at a beach cafe',
+    '로컬 베이커리 쿠키 증정':'Free cookie from a local bakery',
+    '부산 관광 굿즈 15% 할인':'15% off Busan travel goods',
+    '근처 매장에서 사용':'Use at a nearby store','리워드 교환':'Reward exchange',
+    '쿠폰함':'Coupon wallet','사용 가능':'Available','번호 복사':'Copy number',
+    '사용 완료 · 삭제':'Used · Delete','한 번 더 누르면 삭제':'Press again to delete',
+    '테스트용 사본':'Test copy','테스트 모드':'Test mode','테스트 데이터 초기화':'Reset test data',
+    '정확도 개선 테스트':'Route accuracy test','실시간 상태 반영 중':'Live status updates',
+    '사람이 적은 바다':'Quiet beach','노을이 예쁜 곳':'Beautiful sunset',
+    '사진이 잘 나오는 곳':'Photogenic spot','조용히 걷기 좋은 길':'Quiet walking trail',
+    '이색적인 카페':'Unique cafe','비 오는 날 가기 좋은 곳':'Good for a rainy day',
+    '반려동물과 가기 좋은 곳':'Pet-friendly place','아이와 가기 좋은 곳':'Family-friendly place',
+    '혼자 쉬기 좋은 곳':'Good for solo relaxation','무료로 즐길 곳':'Free things to do',
+    '야경이 좋은 곳':'Great night view','대중교통이 편한 곳':'Easy public transit',
+    '기타: 원하는 분위기나 장소를 직접 입력':'Other: enter your preferred mood or place',
+    '기타: 예) 45분, 오후 6시 이후':'Other: e.g. 45 minutes, after 6 PM',
+    '상관 없음':'Any time','반나절':'Half day',
+    '에 맞는 추천':' recommendations','조용한':'Quiet','매우 여유':'Very quiet','여유':'Quiet','보통':'Moderate','혼잡':'Crowded','매우 혼잡':'Very crowded',
+    '원활':'Smooth','어려움':'Difficult','좋음':'Good','낮음':'Low','깨끗':'Clean',
+    '조용한 바다, 산책':'Quiet beach, walking','조용한, 걷기':'Quiet, walking',
+    '걷기, 조용한':'Walking, quiet','사진, 바다':'Photos, beach','사진, 걷기':'Photos, walking',
+    '골목, 사진':'Alley, photos','바다, 사진':'Beach, photos','노을, 바다':'Sunset, beach',
+    '야경, 카페':'Night view, cafe','카페, 비오는 날':'Cafe, rainy day',
+    '바다, 걷기':'Beach, walking','바다, 산책':'Beach, stroll',
+    '도보':'Walking','차량':'Driving','대중교통':'Public transit','지하철':'Subway','버스':'Bus',
+    '이동 수단':'Travel mode','선택 수단':'Selected mode','목적지까지':'To destination',
+    '출발 위치':'Starting point','도착 위치':'Destination','출발':'Start','도착':'Arrival','목적지':'Destination',
+    '실제 경로 찾기':'Find real route','지도 전체 보기':'View full map','실제 경로 지도':'Real route map',
+    '경로 정보':'Route details','경로 없음':'No route','실시간 확인':'Check live','외부 지도':'External map',
+    '경로 찾기':'Find route','다시 시도':'Try again','안내 시작':'Start directions',
+    '지도에서 보기':'View on map','우회 루트':'Alternative route',
+    '장소 또는 지역 검색':'Search places or areas','장소 검색':'Place search',
+    '현재 위치':'Current location','확대':'Zoom in','축소':'Zoom out',
+    '홈':'Home','지도':'Map','루트':'Routes','플로깅':'Plogging','마이':'My',
+    '선택한':'Selected','작성한':'Submitted','현장 제보':'On-site reports',
+    '나눠 찾은':'Shared discoveries','여유 구간':'quiet areas','저장한':'Saved','장소':'places',
+    '조용한 루트':'quiet routes','보유':'Balance','획득':'Earned','필요':'required',
+    '관광':'Visitor','예상 ':'Estimated ','평균 ':'Average ','예상 시간':'Estimated time','예상 이동':'Estimated travel','이동 기록':'Travel log',
+    '이동 거리':'Distance','시간':'Time','거리':'Distance',
+    '사진':'Photos','바다':'Beach','걷기':'Walking','산책':'Stroll','카페':'Cafe','노을':'Sunset','야경':'Night view',
+    '추천':'Recommended','비교':'Compare','진행 중':'In progress','사용 완료':'Used','삭제':'Delete','복사':'Copy','교환':'Redeem'
+  };
+  const translations={...placeTranslations,...districtTranslations,...uiTranslations};
+  const orderedTranslations=Object.entries(translations).sort((a,b)=>b[0].length-a[0].length);
+  const regexTranslations=[
+    [/최근 2시간 제보 (\d+)건/g,'$1 reports in the last 2 hours'],
+    [/최근 2 hr 제보 (\d+) reports/g,'$1 reports in the last 2 hours'],
+    [/(\d+)개 보관 중/g,'$1 stored'],[/(\d+) saved/g,'$1 saved'],[/(\d+)개/g,'$1 items'],
+    [/(\d+)건/g,'$1 reports'],[/(\d+)분/g,'$1 min'],[/(\d+)시간/g,'$1 hr'],[/(\d+)km/g,'$1 km'],
+    [/(\d+)%/g,'$1%'],[/(\d+) Drop 필요/g,'$1 Drops required'],[/혼잡 (\d+)/g,'Crowd $1'],
+    [/최근 2시간 제보 (\d+)건/g,'$1 reports in the last 2 hours'],
+    [/예상 (\d+)분/g,'Estimated $1 min'],[/평균 혼잡 (\d+)/g,'Average crowd $1'],
+    [/혼잡 구간 (\d+)개/g,'$1 crowded sections'],[/발견 포인트 (\d+)개/g,'$1 discovery points'],
+    [/목표까지 (\d+)개/g,'$1 items to goal'],[/(\d+)배 보너스/g,'$1× bonus'],
+    [/Crowded sections (\d+) items/g,'$1 crowded sections'],
+    [/Discovery points (\d+) items/g,'$1 discovery points'],
+    [/현재 위치에서 (.+?)까지/g,'From current location to $1'],[/내 현재 위치에서/g,'From my current location'],
+    [/(.+?)까지, 어떤 길로 갈까요\?/g,'Which route should we take to $1?'],
+    [/(.+?)에서 남긴 오늘의 좋은 변화/g,"Today's positive impact at $1"],
+    [/(.+?)에 맞는 추천/g,'Recommendations for $1'],
+    [/(.+?) 방향으로 이동/g,'Head toward $1'],
+    [/(.+?)까지 실제 도로망을 따라 안내합니다\./g,'Follow the real road network to $1.'],
+    [/(.+?) 위치로 안내 중/g,'Navigating to $1'],
+    [/(.+?)에서 (.+?)까지/g,'From $1 to $2']
+  ];
+  function translateString(value){
+    if(!value||!/[가-힣]/.test(value))return value;
+    const leading=value.match(/^\s*/)?.[0]||'';
+    const trailing=value.match(/\s*$/)?.[0]||'';
+    const direct=translations[value.trim()];
+    if(direct)return leading+direct+trailing;
+    let result=value;
+    for(const [pattern,replacement] of regexTranslations)result=result.replace(pattern,replacement);
+    for(const [ko,en] of orderedTranslations)result=result.split(ko).join(en);
+    for(const [pattern,replacement] of regexTranslations)result=result.replace(pattern,replacement);
+    return result;
+  }
+  function translateElement(root){
+    if(currentLanguage!=='en'||!root)return;
+    const walker=document.createTreeWalker(root,NodeFilter.SHOW_TEXT);
+    const textNodes=[];
+    while(walker.nextNode()){
+      const node=walker.currentNode;
+      const parent=node.parentElement;
+      if(parent&&!parent.closest('script,style,#blueLanguageSwitch')&&/[가-힣]/.test(node.nodeValue||''))textNodes.push(node);
+    }
+    for(const node of textNodes)node.nodeValue=translateString(node.nodeValue);
+    const elements=root.querySelectorAll?root.querySelectorAll('[placeholder],[aria-label],[title],option'):[];
+    for(const element of elements){
+      for(const attr of ['placeholder','aria-label','title']){
+        if(element.hasAttribute?.(attr))element.setAttribute(attr,translateString(element.getAttribute(attr)));
+      }
+      if(element.tagName==='OPTION'){
+        if(/[가-힣]/.test(element.textContent||''))element.textContent=translateString(element.textContent);
+        if(/[가-힣]/.test(element.getAttribute('value')||''))element.setAttribute('value',translateString(element.getAttribute('value')));
+      }
+    }
+    document.documentElement.lang='en';
+    document.title='BlueDrop | Follow the Flow of Busan';
+  }
+  function mountSwitch(){
+    let panel=document.getElementById('blueLanguageSwitch');
+    if(!panel){
+      panel=document.createElement('div');
+      panel.id='blueLanguageSwitch';
+      panel.setAttribute('aria-label','Language');
+      panel.innerHTML='<button type="button" data-lang="ko">한국어</button><button type="button" data-lang="en">English</button>';
+      panel.addEventListener('click',event=>{
+        const button=event.target.closest('button[data-lang]');
+        if(button)window.setBlueDropLanguage(button.dataset.lang);
+      });
+      document.body.appendChild(panel);
+    }
+    panel.querySelectorAll('button').forEach(button=>button.classList.toggle('on',button.dataset.lang===currentLanguage));
+  }
+  let scheduled=false;
+  function scheduleTranslation(){
+    if(currentLanguage!=='en'||scheduled)return;
+    scheduled=true;
+    requestAnimationFrame(()=>{
+      scheduled=false;
+      translateElement(document.body);
+      mountSwitch();
+    });
+  }
+  window.setBlueDropLanguage=language=>{
+    if(!['ko','en'].includes(language))return;
+    currentLanguage=language;
+    localStorage.setItem(languageKey,language);
+    document.documentElement.lang=language;
+    document.title=language==='en'?'BlueDrop | Follow the Flow of Busan':'BlueDrop | 부산의 흐름을 따라';
+    if(typeof window.render==='function')window.render();
+    mountSwitch();
+    if(language==='en')scheduleTranslation();
+  };
+  const nativeConfirm=window.confirm.bind(window);
+  const nativeAlert=window.alert.bind(window);
+  const nativePrompt=window.prompt.bind(window);
+  window.confirm=message=>nativeConfirm(currentLanguage==='en'?translateString(String(message)):message);
+  window.alert=message=>nativeAlert(currentLanguage==='en'?translateString(String(message)):message);
+  window.prompt=(message,defaultValue)=>nativePrompt(currentLanguage==='en'?translateString(String(message)):message,defaultValue);
+  const originalSearchMap=window.searchMap;
+  window.searchMap=value=>{
+    if(currentLanguage==='en'){
+      const normalized=String(value||'').trim().toLowerCase();
+      const match=places.find(place=>{
+        const englishName=(placeTranslations[place.name]||'').toLowerCase();
+        const englishDistrict=(districtTranslations[place.district]||'').toLowerCase();
+        return englishName.includes(normalized)||englishDistrict.includes(normalized);
+      });
+      if(match)return showPlace(match.id);
+    }
+    return originalSearchMap(value);
+  };
+  document.head.insertAdjacentHTML('beforeend',`<style>
+    #blueLanguageSwitch{position:fixed;z-index:4200;top:max(12px,env(safe-area-inset-top));right:max(12px,calc((100vw - 1090px)/2));display:flex;gap:3px;padding:4px;border:1px solid #cbdde9;border-radius:13px;background:#fffffff2;box-shadow:0 4px 16px #1232;backdrop-filter:blur(10px)}
+    #blueLanguageSwitch button{min-height:34px;padding:6px 10px;border-radius:9px;background:transparent;color:#61778a;font-size:12px;font-weight:800}
+    #blueLanguageSwitch button.on{background:#1677ff;color:#fff}
+    @media(max-width:620px){#blueLanguageSwitch{top:max(9px,env(safe-area-inset-top));right:9px}#blueLanguageSwitch button{padding:5px 8px}}
+  </style>`);
+  const observer=new MutationObserver(scheduleTranslation);
+  observer.observe(document.body,{childList:true,subtree:true,characterData:true});
+  mountSwitch();
+  if(currentLanguage==='en')scheduleTranslation();
+  else document.title='BlueDrop | 부산의 흐름을 따라';
+})();
+</script>
 </body>
 </html>
